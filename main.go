@@ -2,9 +2,11 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -35,6 +37,33 @@ func (config *Config) readConfig() error {
 	return nil
 }
 
+func (config *Config) integrityCheck() error {
+	var missingFields []string
+
+	if config.ClientID == "" {
+		missingFields = append(missingFields, "ClientID")
+	}
+	if config.ClientSecret == "" {
+		missingFields = append(missingFields, "ClientSecret")
+	}
+	if config.DownloadFolder == "" {
+		missingFields = append(missingFields, "DownloadFolder")
+	}
+	if config.PreferredQuality == "" {
+		missingFields = append(missingFields, "PreferredQuality")
+	}
+	if config.Streamer == "" {
+		missingFields = append(missingFields, "Streamer")
+	}
+
+	if len(missingFields) > 0 {
+		missingFieldsStr := strings.Join(missingFields, ", ")
+		return fmt.Errorf("the following field(s) are missing in the configuration: %s", missingFieldsStr)
+	}
+
+	return nil
+}
+
 func main() {
 	const interval = 15
 	var isRecording = false
@@ -42,8 +71,14 @@ func main() {
 	config := Config{}
 	recorder := NewRecorder()
 
-	if err := config.readConfig(); err != nil {
+	err := config.readConfig()
+	if err != nil {
 		log.Fatal("Error reading config:", err)
+	}
+
+	err = config.integrityCheck()
+	if err != nil {
+		log.Fatalf("Configuration is incomplete. %v", err)
 	}
 
 	downloadFolder, err := filepath.Abs(config.DownloadFolder)
