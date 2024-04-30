@@ -112,7 +112,10 @@ func main() {
 			isRecording = true
 		} else if !isLive && isRecording {
 			log.Printf("%s has gone offline!", config.Streamer)
-			recorder.StopRecording()
+			err = recorder.StopRecording()
+			if err != nil {
+				log.Printf("Error terminating streamlink recording process. %v", err)
+			}
 			isRecording = false
 		}
 
