@@ -52,7 +52,7 @@ func (r *Recorder) StopRecording() error {
 
 	_, err := r.Process.Wait()
 	if err != nil {
-		return fmt.Errorf("error waiting for process to exit: %v", err)
+		return fmt.Errorf("error terminating streamlink recording process: %v", err)
 	}
 
 	r.Process = nil
