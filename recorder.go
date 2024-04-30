@@ -35,7 +35,6 @@ func (r *Recorder) StartRecording(streamerName, filePath, preferredQuality strin
 	log.Println("Executing command:", commandString)
 	cmd := exec.Command(streamlinkCommand[0], streamlinkCommand[1:]...)
 	err := cmd.Start()
-	// FIX: If preferred quality is not available, it still sends the command and does not return an error.
 	if err != nil {
 		log.Fatal("Failed to start streamlink cmd. Error:", err)
 		return err

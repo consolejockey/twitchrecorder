@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"time"
 )
@@ -98,7 +99,16 @@ func main() {
 
 		if isLive && !isRecording {
 			log.Printf("%s is now live!", config.Streamer)
-			recorder.StartRecording(config.Streamer, downloadFolder, config.PreferredQuality)
+			var quality = config.PreferredQuality
+			var availableQualities, err = twitchClient.GetAvailableStreams(config.Streamer)
+			if err != nil {
+				quality = "best"
+				log.Println("Could not retrieve available qualities. Defaulting to 'best'. Error:", err)
+			} else if !slices.Contains(availableQualities, quality) {
+				quality = "best"
+				log.Printf("Could not find preferred quality '%s'. Defaulting to 'best'.", config.PreferredQuality)
+			}
+			recorder.StartRecording(config.Streamer, downloadFolder, quality)
 			isRecording = true
 		} else if !isLive && isRecording {
 			log.Printf("%s has gone offline!", config.Streamer)

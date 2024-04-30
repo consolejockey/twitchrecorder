@@ -6,6 +6,8 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os/exec"
+	"strings"
 )
 
 const (
@@ -128,4 +130,58 @@ func (t *TwitchClient) IsLive(streamerName string) bool {
 	}
 
 	return len(data) > 0
+}
+
+func (t *TwitchClient) GetAvailableStreams(streamerName string) ([]string, error) {
+	streamlinkCommand := []string{
+		"streamlink",
+		"twitch.tv/" + streamerName,
+		"--json",
+	}
+
+	commandString := strings.Join(streamlinkCommand, " ")
+	log.Println("Executing command:", commandString)
+	cmd := exec.Command(streamlinkCommand[0], streamlinkCommand[1:]...)
+	output, err := cmd.Output()
+	if err != nil {
+		log.Fatal("Failed to execute streamlink command:", err)
+		return nil, err
+	}
+
+	twitchStreams, err := NewTwitchStreams(string(output))
+	if err != nil {
+		log.Println("Failed to parse JSON data:", err)
+		return nil, err
+	}
+
+	var availableQualities []string
+	for quality := range twitchStreams.Streams {
+		availableQualities = append(availableQualities, quality)
+	}
+
+	return availableQualities, nil
+}
+
+type TwitchStreams struct {
+	Plugin   string `json:"plugin"`
+	Metadata struct {
+		ID       string `json:"id"`
+		Author   string `json:"author"`
+		Category string `json:"category"`
+		Title    string `json:"title"`
+	} `json:"metadata"`
+	Streams map[string]struct {
+		Type    string            `json:"type"`
+		URL     string            `json:"url"`
+		Headers map[string]string `json:"headers"`
+		Master  string            `json:"master"`
+	} `json:"streams"`
+}
+
+func NewTwitchStreams(data string) (*TwitchStreams, error) {
+	var twitchStreams TwitchStreams
+	if err := json.Unmarshal([]byte(data), &twitchStreams); err != nil {
+		return nil, err
+	}
+	return &twitchStreams, nil
 }
