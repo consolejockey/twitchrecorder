@@ -1,4 +1,4 @@
-# twitch-recorder
+# twitchrecorder
 
 This is a lightweight recorder written in Go that utilizes [Streamlink](https://github.com/streamlink/streamlink) to record live streams from Twitch. Streamlink is a command-line utility that extracts streams from various services. twitch-recorder integrates Streamlink with a live stream status check, enabling automated Twitch stream recording. With this functionality, users can effortlessly record their desired streams without manual intervention, streamlining the entire recording process.
 
